@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 科目一 · 30分钟限时挑战 | 满分奖杯动画</title>
+    <!-- Font Awesome 6 (免费) 用于奖杯及图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f4f8 0%, #e6ecf3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .challenge-container {
+            width: 1500px;
+            max-width: 100%;
+            height: 95vh;
+            display: flex;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        /* 左侧答题区 (滚动) */
+        .question-panel {
+            flex: 2.2;
+            background: #ffffffd9;
+            backdrop-filter: blur(4px);
+            padding: 24px 20px;
+            overflow-y: auto;
+            border-right: 2px solid #cfddee;
+            scroll-behavior: smooth;
+        }
+
+        .question-panel h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1e2b3a;
+            border-bottom: 3px solid #2b6c9e;
+            padding-bottom: 10px;
+        }
+
+        .question-panel h2 i {
+            color: #f4b740;
+            font-size: 2rem;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 24px;
+            padding: 22px 20px 18px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 14px rgba(0, 20, 40, 0.08);
+            border: 1px solid #e9eef3;
+            transition: all 0.2s;
+            position: relative;
+            border-left: 8px solid #d0d9e3;  /* 默认未答灰 */
+        }
+
+        .question-card.status-correct {
+            border-left-color: #2b8c5e;
+            background: #f0faf4;
+        }
+
+        .question-card.status-wrong {
+            border-left-color: #c23b3b;
+            background: #fff1f0;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .q-num {
+            display: inline-flex;
+            width: 36px;
+            height: 36px;
+            background: #d0d9e3;
+            border-radius: 50%;
+            color: #1e2b3a;
+            font-weight: 700;
+            font-size: 1.2rem;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: 0.15s;
+        }
+
+        .status-correct .q-num {
+            background: #2b8c5e;
+            color: white;
+        }
+
+        .status-wrong .q-num {
+            background: #c23b3b;
+            color: white;
+        }
+
+        .q-text {
+            font-weight: 600;
+            font-size: 1.08rem;
+            color: #0b1a2a;
+            line-height: 1.4;
+        }
+
+        .options {
+            padding-left: 48px; /* 与序号对齐 */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            background: #f7fafd;
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid #dbe4ed;
+            transition: 0.1s;
+            cursor: pointer;
+        }
+
+        .option-item:hover {
+            background: #e3ecf5;
+            border-color: #2b6c9e;
+        }
+
+        .option-item input[type="radio"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #7f8fa4;
+            border-radius: 50%;
+            margin-right: 4px;
+            position: relative;
+            cursor: pointer;
+            flex-shrink: 0;
+            top: 3px;
+        }
+
+        .option-item input[type="radio"]:checked {
+            border-color: #1f5a8e;
+            background-color: #1f5a8e;
+            box-shadow: inset 0 0 0 4px white;
+        }
+
+        .option-item label {
+            font-size: 1rem;
+            color: #1a2d3c;
+            width: 100%;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+
+        /* 右侧信息面板 */
+        .info-panel {
+            flex: 1;
+            background: #1a2b39;
+            color: white;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 2px 0 8px rgba(0,0,0,0.2);
+        }
+
+        .timer-box {
+            background: #0d1a26;
+            border-radius: 40px;
+            padding: 22px 16px;
+            text-align: center;
+            border: 2px solid #f5b342;
+            box-shadow: 0 8px 0 #0f2535;
+        }
+
+        .timer-label {
+            font-size: 1rem;
+            letter-spacing: 2px;
+            color: #bdd3e8;
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: #fad275;
+            line-height: 1.2;
+            text-shadow: 0 0 10px #f5b34280;
+        }
+
+        .score-box {
+            background: #173247;
+            border-radius: 30px;
+            padding: 22px 16px;
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            color: #c5d9ed;
+        }
+
+        .current-score {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, #ffe5a3, #f9c762);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .small-hint {
+            font-size: 0.9rem;
+            color: #99b8d4;
+        }
+
+        .chart-container {
+            background: #102330;
+            border-radius: 32px;
+            padding: 20px 16px 16px;
+        }
+
+        .chart-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #e3f0fd;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        canvas#scoreChart {
+            width: 100%;
+            height: 140px;
+            background: #1e364a;
+            border-radius: 24px;
+            display: block;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background: #2f5270;
+            border: none;
+            border-radius: 60px;
+            padding: 16px 10px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 4px solid #0d2638;
+        }
+
+        .btn-warning {
+            background: #e68a2e;
+            border-bottom-color: #9e5618;
+        }
+
+        .btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            border-bottom-width: 2px;
+        }
+
+        .disabled-overlay {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* 奖杯动画容器 */
+        .trophy-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 999;
+            pointer-events: none;
+            animation: floatPop 2s ease-out forwards;
+            font-size: 8rem;
+            filter: drop-shadow(0 20px 30px gold);
+            display: none;
+        }
+
+        @keyframes floatPop {
+            0% { opacity: 0; transform: translate(-50%, 30%) scale(0.2); }
+            30% { opacity: 1; transform: translate(-50%, -60%) scale(1.3); }
+            70% { opacity: 1; transform: translate(-50%, -60%) scale(1.3); }
+            100% { opacity: 0; transform: translate(-50%, -150%) scale(1.8); }
+        }
+
+        .sparkles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle at center, #fff9c4 0%, transparent 70%);
+            mix-blend-mode: overlay;
+            animation: sparkleFade 1.8s ease-out forwards;
+            z-index: 998;
+            display: none;
+        }
+
+        @keyframes sparkleFade {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        footer {
+            text-align: center;
+            color: #7e95ab;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        /* 自定义滚动条 */
+        .question-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .question-panel::-webkit-scrollbar-thumb {
+            background: #2b6c9e;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="challenge-container">
+    <!-- 左侧题目区 -->
+    <div class="question-panel" id="questionPanel">
+        <h2><i class="fas fa-road"></i> 难点精练 · 40题</h2>
+        <div id="questionsList"></div>
+    </div>
+
+    <!-- 右侧信息 -->
+    <div class="info-panel" id="infoPanel">
+        <div class="timer-box">
+            <div class="timer-label"><i class="far fa-clock"></i> 剩余时间</div>
+            <div class="timer-display" id="timerDisplay">30:00</div>
+        </div>
+        <div class="score-box">
+            <div class="score-label"><i class="fas fa-star"></i> 当前得分</div>
+            <div class="current-score" id="scoreDisplay">0.0</div>
+            <div class="small-hint">满分100</div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title"><i class="fas fa-chart-line"></i> 近五次成绩</div>
+            <canvas id="scoreChart" width="300" height="140"></canvas>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn" id="endChallengeBtn"><i class="fas fa-flag-checkered"></i> 结束挑战并记录</button>
+            <button class="btn btn-warning" id="resetBtn"><i class="fas fa-rotate-left"></i> 重置挑战</button>
+        </div>
+        <footer>⚡ 基于《驾考难点思维导图》</footer>
+    </div>
+</div>
+
+<!-- 奖杯动画层 -->
+<div class="trophy-animation" id="trophyAnim">
+    <i class="fas fa-trophy" style="color: #ffd966; text-shadow: 0 0 30px gold;"></i>
+</div>
+<div class="sparkles" id="sparkles"></div>
+
+<script>
+    (function() {
+        // ------------------------------------------------------------
+        // 根据文档构建 40 道题目数据 (严格按照题目及答案)
+        // ------------------------------------------------------------
+        const questionsData = [
+            { text: "驾驶机动车在高速公路上倒车、掉头、逆行的，一次记多少分？", options: ["A. 3分", "B. 6分", "C. 9分", "D. 12分"], correct: 3 },
+            { text: "关于酒驾，下列哪项说法是正确的？", options: ["A. 饮酒后驾驶机动车，暂扣6个月驾照，并处1000元以上2000元以下罚款", "B. 醉酒驾驶机动车的，吊销驾照，5年内不得重新申领，并依法追究刑事责任", "C. 因饮酒后驾驶机动车被处罚，再次饮酒后驾驶机动车的，处10日以下拘留+罚款+吊销驾照", "D. 以上都对"], correct: 3 },
+            { text: "驾驶人造成交通事故后逃逸，尚不构成犯罪的，一次记多少分？", options: ["A. 6分", "B. 9分", "C. 12分", "D. 3分"], correct: 2 },
+            { text: "关于超速，以下哪种说法符合新规（依据导图）？", options: ["A. 高速公路上超速50%以上记12分", "B. 普通公路超速50%以上记6分", "C. 高速超速20%以上未达50%记6分", "D. 以上都是"], correct: 3 },
+            { text: "使用伪造、变造的机动车号牌、行驶证、驾驶证的一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 0 },
+            { text: "驾驶机动车不按交通信号灯指示通行（闯红灯）的，一次记多少分？", options: ["A. 12分", "B. 6分", "C. 3分", "D. 1分"], correct: 1 },
+            { text: "驾驶与准驾车型不符的机动车，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 1 },
+            { text: "关于超员，根据车辆类型，下列哪项是正确的？", options: ["A. 7座以上载客汽车超员100%以上记12分", "B. 7座以下载客汽车超员100%以上记12分", "C. 7座以上载客汽车超员50%~100%记9分？导图简化为7座以上超员100%以上12分，7座以下超员100%以上6分", "D. 以上均对"], correct: 2 },
+            { text: "未取得校车驾驶资格驾驶校车的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 1 },
+            { text: "驾驶人驾驶机动车在高速公路上违法占用应急车道行驶的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 2 },
+            { text: "关于超载（货车超限），导图中提及的处罚是？", options: ["A. 超载30%以下记1分", "B. 超载30%~50%记3分", "C. 超载50%以上记6分", "D. 导图只概括为'货车超限'但结合扣分表，常见6分"], correct: 3 },
+            { text: "驾驶机动车在高速公路上行驶，超过规定时速20%以上未达50%的，一次记多少分？", options: ["A. 12分", "B. 6分", "C. 3分", "D. 1分"], correct: 1 },
+            { text: "以下哪种违法行为一次记3分？", options: ["A. 驾驶机动车在高速公路上不按规定车道行驶", "B. 驾驶机动车不按规定避让校车", "C. 驾驶机动车接打手持电话", "D. 以上都是"], correct: 3 },
+            { text: "关于逃逸，下列说法正确的是？", options: ["A. 造成致人轻伤以上或者死亡的交通事故后逃逸，尚不构成犯罪的，一次记12分", "B. 造成致人轻微伤或者财产损失的交通事故后逃逸，尚不构成犯罪的，一次记6分", "C. 轻微伤逃逸记6分（导图右侧明确）", "D. 以上都对"], correct: 3 },
+            { text: "故意遮挡、污损机动车号牌的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 1 },
+            { text: "未悬挂机动车号牌或者不按规定安装号牌的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 1 },
+            { text: "驾驶机动车在普通公路上逆行，一次记多少分？", options: ["A. 12分", "B. 6分", "C. 3分", "D. 1分"], correct: 2 },
+            { text: "驾驶机动车违反禁令标志、禁止标线指示的，一次记多少分？", options: ["A. 1分", "B. 2分", "C. 3分", "D. 6分"], correct: 0 },
+            { text: "关于实习期的规定，以下哪项正确？", options: ["A. 实习期内驾驶机动车上高速公路，必须由持相应或者更高准驾车型驾驶证三年以上的驾驶人陪同", "B. 实习期内未粘贴实习标志，可处20元以上200元以下罚款", "C. 实习期独自上高速属于违法行为，但不额外扣分？导图提及'实习期独自上高速'但未标分，应视为禁令", "D. 以上说法均合理"], correct: 3 },
+            { text: "驾驶机动车在道路上行驶时，机动车驾驶人未按规定系安全带的，一次记多少分？", options: ["A. 12分", "B. 6分", "C. 3分", "D. 1分"], correct: 3 },
+            { text: "驾驶机动车在高速公路上行驶低于规定最低时速的，一次记多少分？", options: ["A. 6分", "B. 3分", "C. 2分", "D. 1分"], correct: 1 },
+            { text: "驾驶机动车遇前方机动车停车排队或者缓慢行驶时，借道超车或者占用对面车道、穿插等候车辆的，一次记多少分？", options: ["A. 6分", "B. 3分", "C. 2分", "D. 1分"], correct: 1 },
+            { text: "代替实际机动车驾驶人接受交通违法行为处罚和记分牟取经济利益的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 0 },
+            { text: "驾驶机动车在高速公路或者城市快速路上违法停车的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 1 },
+            { text: "驾驶机动车载货长度、宽度、高度超过规定的，一次记多少分？", options: ["A. 1分", "B. 3分", "C. 6分", "D. 12分"], correct: 0 },
+            { text: "上道路行驶的机动车未放置保险标志、检验合格标志的，一次记多少分？", options: ["A. 1分", "B. 3分", "C. 6分", "D. 不扣分"], correct: 0 },
+            { text: "驾驶人连续驾驶中型以上载客汽车、危险物品运输车辆以外的机动车超过4小时未停车休息或者停车休息时间少于20分钟的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 3 },
+            { text: "驾驶机动车行经人行横道，不按规定减速、停车、避让行人的，一次记多少分？", options: ["A. 1分", "B. 2分", "C. 3分", "D. 6分"], correct: 2 },
+            { text: "驾驶机动车不按规定会车，或者在普通公路上不按规定掉头、倒车的，一次记多少分？", options: ["A. 1分", "B. 2分", "C. 3分", "D. 6分"], correct: 0 },
+            { text: "造成致人轻微伤或者财产损失的交通事故后逃逸，尚不构成犯罪的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 2 },
+            { text: "驾驶机动车不按规定使用灯光的，一次记多少分？", options: ["A. 1分", "B. 2分", "C. 3分", "D. 6分"], correct: 0 },
+            { text: "驾驶机动车在高速公路上发生故障或事故后，不按规定使用危险报警闪光灯或设置警告标志的，一次记多少分？", options: ["A. 6分", "B. 3分", "C. 2分", "D. 1分"], correct: 1 },
+            { text: "申请人在考试过程中有贿赂、舞弊行为的，取消考试资格，已经通过考试的其他科目成绩无效，且多少年内不得再次申领？", options: ["A. 1年", "B. 2年", "C. 3年", "D. 5年"], correct: 0 },
+            { text: "驾驶报废机动车上路行驶的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 0 },
+            { text: "驾驶拼装机动车上路行驶的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 0 },
+            { text: "关于超速，导图中哪一项描述正确？", options: ["A. 普通公路超速50%以上记6分", "B. 高速公路超速50%以上记12分", "C. 普通公路超速20%-50%记3分", "D. 以上都对"], correct: 3 },
+            { text: "驾驶机动车在高速公路上不按规定保持行车间距的，一次记多少分？", options: ["A. 1分", "B. 2分", "C. 3分", "D. 6分"], correct: 1 },
+            { text: "驾驶机动车在一般道路上超速20%以上未达50%的，一次记多少分？", options: ["A. 12分", "B. 6分", "C. 3分", "D. 1分"], correct: 2 },
+            { text: "驾驶证被暂扣期间驾驶机动车的，一次记多少分？", options: ["A. 12分", "B. 9分", "C. 6分", "D. 3分"], correct: 2 },
+            { text: "非法安装警报器或者标志灯具的，一次记多少分？", options: ["A. 12分", "B. 6分", "C. 3分", "D. 1分"], correct: 1 }
+        ];
+
+        // 状态管理
+        let userAnswers = new Array(40).fill(null);         // 存储选中的选项索引 (0~3)
+        let questionStatus = new Array(40).fill('unanswered'); // 'correct', 'wrong', 'unanswered'
+        let timerInterval = null;
+        let timeLeft = 1800; // 30分 = 1800秒
+        let active = true;   // 是否可答题（计时结束或手动结束变为false）
+        let score = 0;
+        const scorePerQuestion = 2.5;
+        let historyScores = []; // 最近五次成绩
+
+        // DOM 元素
+        const questionsListEl = document.getElementById('questionsList');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const canvas = document.getElementById('scoreChart');
+        const ctx = canvas.getContext('2d');
+        const endBtn = document.getElementById('endChallengeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const trophyAnim = document.getElementById('trophyAnim');
+        const sparkles = document.getElementById('sparkles');
+        let满分触发标记 = false;
+
+        // 初始化或读取本地存储
+        function loadHistory() {
+            const stored = localStorage.getItem('kaoshi_history');
+            if (stored) {
+                try {
+                    historyScores = JSON.parse(stored);
+                } catch (e) { historyScores = [68, 74, 85, 92, 78]; }
+            } else {
+                historyScores = [68, 74, 85, 92, 78]; // 默认数据
+            }
+            // 确保是5个
+            while(historyScores.length < 5) historyScores.push(60);
+            historyScores = historyScores.slice(-5);
+        }
+        function saveHistory() {
+            localStorage.setItem('kaoshi_history', JSON.stringify(historyScores));
+        }
+
+        // 绘制曲线图
+        function drawChart() {
+            const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            if (historyScores.length === 0) return;
+            const maxScore = 100, minScore = 0;
+            const points = historyScores.map((s, i) => {
+                const x = 30 + i * (w - 70) / 4; // 留边
+                const y = h - 20 - (s / maxScore) * (h - 50);
+                return { x, y: Math.min(h-25, Math.max(25, y)) };
+            });
+            // 绘制连线
+            ctx.beginPath();
+            ctx.strokeStyle = "#f9c762";
+            ctx.lineWidth = 3;
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+            ctx.stroke();
+            // 画点
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.fillStyle = "#ffdd99";
+                ctx.arc(p.x, p.y, 6, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.shadowColor = 'white';
+            });
+            ctx.shadowColor = 'transparent';
+        }
+
+        // 更新得分显示与题板颜色
+        function updateScoreAndStatus() {
+            let correctCount = 0;
+            for (let i = 0; i < 40; i++) {
+                if (questionStatus[i] === 'correct') correctCount++;
+            }
+            score = correctCount * scorePerQuestion;
+            scoreDisplay.innerText = score.toFixed(1);
+
+            // 检测满分触发奖杯
+            if (score >= 99.9 && !满分触发标记 && active) {
+                满分触发标记 = true;
+                trophyAnim.style.display = 'block';
+                sparkles.style.display = 'block';
+                setTimeout(() => {
+                    trophyAnim.style.display = 'none';
+                    sparkles.style.display = 'none';
+                }, 2000);
+            }
+            if (score < 100) 满分触发标记 = false; // 如果之后不是满分重置标记（但几乎不可能）
+        }
+
+        // 渲染左侧题目
+        function renderQuestions() {
+            let html = '';
+            questionsData.forEach((q, idx) => {
+                const statusClass = questionStatus[idx] === 'correct' ? 'status-correct' : (questionStatus[idx] === 'wrong' ? 'status-wrong' : '');
+                let optionsHtml = '';
+                q.options.forEach((opt, optIdx) => {
+                    const checked = (userAnswers[idx] === optIdx) ? 'checked' : '';
+                    optionsHtml += `
+                        <div class="option-item" onclick="document.getElementById('q${idx}_opt${optIdx}').click();">
+                            <input type="radio" name="q${idx}" id="q${idx}_opt${optIdx}" value="${optIdx}" data-qid="${idx}" ${checked} ${!active ? 'disabled' : ''}>
+                            <label for="q${idx}_opt${optIdx}">${opt}</label>
+                        </div>
+                    `;
+                });
+                html += `
+                    <div class="question-card ${statusClass}" id="question-${idx}">
+                        <div class="question-header">
+                            <span class="q-num">${idx+1}</span>
+                            <span class="q-text">${idx+1}. ${q.text}</span>
+                        </div>
+                        <div class="options">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            questionsListEl.innerHTML = html;
+        }
+
+        // 事件监听（单选改变）
+        function attachListeners() {
+            document.querySelectorAll('input[type=radio]').forEach(radio => {
+                radio.removeEventListener('change', radioChangeHandler);
+                radio.addEventListener('change', radioChangeHandler);
+            });
+        }
+
+        function radioChangeHandler(e) {
+            if (!active) return;
+            const radio = e.target;
+            const qid = parseInt(radio.dataset.qid);
+            const selectedVal = parseInt(radio.value);
+            const correctAns = questionsData[qid].correct;
+
+            // 如果之前选了同一个选项，不处理
+            if (userAnswers[qid] === selectedVal) return;
+
+            // 更新答案
+            userAnswers[qid] = selectedVal;
+            const isCorrect = (selectedVal === correctAns);
+            questionStatus[qid] = isCorrect ? 'correct' : 'wrong';
+
+            // 更新卡片样式
+            const card = document.getElementById(`question-${qid}`);
+            if (card) {
+                card.classList.remove('status-correct', 'status-wrong');
+                card.classList.add(isCorrect ? 'status-correct' : 'status-wrong');
+            }
+
+            // 重新计算得分
+            updateScoreAndStatus();
+        }
+
+        // 倒计时
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!active) return; // 已结束不计时递减
+                timeLeft--;
+                if (timeLeft < 0) timeLeft = 0;
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerDisplay.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                if (timeLeft <= 0) {
+                    // 时间到，结束挑战
+                    clearInterval(timerInterval);
+                    active = false;
+                    disableAllRadios();
+                    recordCurrentScoreToHistory(); // 自动记录
+                }
+            }, 1000);
+        }
+
+        function disableAllRadios() {
+            document.querySelectorAll('input[type=radio]').forEach(r => r.disabled = true);
+        }
+
+        // 记录本次得分到历史
+        function recordCurrentScoreToHistory() {
+            if (!active && timeLeft === 0) {} // 时间结束记录
+            const finalScore = score;
+            historyScores.push(finalScore);
+            if (historyScores.length > 5) historyScores.shift();
+            saveHistory();
+            drawChart();
+        }
+
+        // 重置所有（重新开始）
+        function resetChallenge() {
+            active = true;
+            timeLeft = 1800;
+            timerDisplay.innerText = '30:00';
+            userAnswers.fill(null);
+            questionStatus.fill('unanswered');
+            score = 0;
+            满分触发标记 = false;
+            updateScoreAndStatus();
+            renderQuestions();
+            attachListeners();
+            if (timerInterval) clearInterval(timerInterval);
+            startTimer();
+        }
+
+        // 结束挑战
+        function endChallenge() {
+            if (!active) return; // 已经结束
+            active = false;
+            clearInterval(timerInterval);
+            disableAllRadios();
+            recordCurrentScoreToHistory();
+        }
+
+        // 初始化
+        function init() {
+            loadHistory();
+            drawChart();
+            renderQuestions();
+            attachListeners();
+            startTimer();
+            updateScoreAndStatus();
+        }
+
+        // 绑定按钮
+        endBtn.addEventListener('click', () => {
+            endChallenge();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            resetChallenge();
+        });
+
+        // 让点击option-item可以触发radio
+        window.radioChangeHandler = radioChangeHandler; // 备用
+
+        init();
+    })();
+</script>
+</body>
+</html>
